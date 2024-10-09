@@ -34,5 +34,5 @@ test: $(TARGET)
 
 # 清理生成的文件
 clean:
-	rm -f $(TARGET) *.class
+	rm -f $(TARGET) **/*.class
 	@echo "=== 清理完成 ==="
