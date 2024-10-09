@@ -8,14 +8,14 @@ LDFLAGS=-lrt -lpthread
 
 # 目标输出文件
 TARGET=libJvmLocals.so
-SRC=JvmLocals.cpp
+SRC=src/JvmLocals.cpp
 
 # Java编译器和运行时 (只用于测试)
 JAVAC=javac
 JAVA=java
 JAVAFLAGS=-agentpath:./libJvmLocals.so -XX:+ShowMessageBoxOnError -Xint -XX:-UseCompressedOops -XX:-TieredCompilation
-JAVA_SRC=Hello.java
-JAVA_CLASS=Hello
+JAVA_SRC=test/Hello.java
+JAVA_CLASS=test.Hello
 
 # 默认目标，编译C++库
 all: $(TARGET)

@@ -41,19 +41,19 @@ Exception occurred: Ljava/lang/NullPointerException;
 In thread: main
 Frame 0: LHello;.doexecute(ILjava/lang/Integer;Ljava/lang/String;)V
   ################## 变量信息 ##################
-  Local variable this = Hello@4c3e4790
+  Local variable this = test.Hello@4c3e4790
   Local variable a = 1
   Local variable b = 2
   Local variable c = world
   Local variable dd = 100
   Local variable ff = null
-  Local variable inner = Hello$Inner@38cccef
+  Local variable inner = test.Hello$Inner@38cccef
 ################## 变量信息 ##################
 Frame 1: LHello;.execute(ILjava/lang/Integer;Ljava/lang/String;)V
 Frame 2: LHello;.main([Ljava/lang/String;)V
 Exception in thread "main" java.lang.NullPointerException
-        at Hello.doexecute(Hello.java:29)
-        at Hello.execute(Hello.java:16)
-        at Hello.main(Hello.java:12)
+        at test.Hello.doexecute(test.Hello.java:29)
+        at test.Hello.execute(test.Hello.java:16)
+        at test.Hello.main(test.Hello.java:12)
 Agent_OnUnload(0x7fbd89b4cb60)
 ```
