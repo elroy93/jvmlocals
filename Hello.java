@@ -18,9 +18,13 @@ public class Hello {
             print(" finally end ");
         }
         // 空指针异常
+        try {
+            String npe = null;
+            npe.length();
+        } catch (Exception e) {
+            //
+        }
 
-        String npe = null;
-        npe.length();
     }
 
     public void execute(int a, Integer b, String c) {
