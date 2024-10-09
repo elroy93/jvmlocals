@@ -1,11 +1,18 @@
 #include <iostream>
-
-#include <iostream>
 #include <string.h>
 #include <stdio.h>
 #include <jvmti.h>
+#include <fstream>
+#include <map>
+#include <list>
+#include <sstream>
 
 using namespace std;
+
+std::map<std::string, std::list<std::string>> config;
+
+// 声明 readConfigFile 函数
+void readConfigFile(const std::string &fileName);
 
 JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
                                          JNIEnv *jni_env,
@@ -16,10 +23,36 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
                                          jmethodID catch_method,
                                          jlocation catch_location)
 {
-    cout << "ExceptionCallback invoked" << endl;
-
     // 获取异常的类名
     jclass exc_class = jni_env->GetObjectClass(exception);
+
+    // 校验是否在ignore的列表中
+    if (true)
+    {
+        jmethodID mid = jni_env->GetMethodID(exc_class, "getClass", "()Ljava/lang/Class;");
+        jobject clsObj = jni_env->CallObjectMethod(exception, mid);
+        jclass clazzz = jni_env->GetObjectClass(clsObj);
+        mid = jni_env->GetMethodID(clazzz, "getName", "()Ljava/lang/String;");
+        jstring strObj = (jstring)jni_env->CallObjectMethod(clsObj, mid);
+
+        const char *str = jni_env->GetStringUTFChars(strObj, NULL);
+
+        auto ignoreExceptions = config["ignore"];
+        // 如果在ignore列表中, 则不处理, 直接返回
+        for (auto &ignoreException : ignoreExceptions)
+        {
+            if (strcmp(str, ignoreException.c_str()) == 0)
+            {
+                cout << "跳过当前异常: " << str << endl;
+                return;
+            }
+        }
+        jni_env->ReleaseStringUTFChars(strObj, str);
+        jni_env->DeleteLocalRef(clsObj); // 释放 Class 对象引用
+        jni_env->DeleteLocalRef(clazzz); // 释放 Class 对象的类引用
+        jni_env->DeleteLocalRef(strObj); // 释放字符串对象引用
+    }
+
     char *class_signature = NULL;
     jvmtiError err = jvmti_env->GetClassSignature(exc_class, &class_signature, NULL);
     if (err == JVMTI_ERROR_NONE && class_signature != NULL)
@@ -34,7 +67,6 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
     err = jvmti_env->GetThreadInfo(thread, &thread_info);
     if (err == JVMTI_ERROR_NONE && thread_info.name != NULL)
     {
-        printf("In thread: %s\n", thread_info.name);
         jvmti_env->Deallocate((unsigned char *)thread_info.name);
     }
 
@@ -179,7 +211,7 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
 
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 {
-    cout << "Agent_OnLoad(" << vm << ")" << endl;
+    readConfigFile("config.ini");
 
     // 初始化 JVMTI 环境
     jvmtiEnv *jvmti;
@@ -228,4 +260,77 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
 {
     cout << "Agent_OnUnload(" << vm << ")" << endl;
+}
+
+// 读取当前文件夹下的 config.ini文件, 放到一个map<string, list>变量中
+
+// 读取并解析 config.ini 文件
+void readConfigFile(const std::string &fileName)
+{
+    std::ifstream file(fileName);
+    if (!file.is_open())
+    {
+        std::cerr << "无法打开配置文件: " << fileName << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        // 跳过注释和空行
+        if (line.empty() || line[0] == '#')
+            continue;
+
+        // 查找等号位置
+        size_t pos = line.find('=');
+        if (pos != std::string::npos)
+        {
+            std::string key = line.substr(0, pos);
+            std::string value = line.substr(pos + 1);
+
+            // 去除首尾空格
+            key.erase(0, key.find_first_not_of(' '));
+            key.erase(key.find_last_not_of(' ') + 1);
+            value.erase(0, value.find_first_not_of(' '));
+            value.erase(value.find_last_not_of(' ') + 1);
+
+            // 将值拆分为多个值（使用逗号作为分隔符）
+            std::stringstream ss(value);
+            std::string item;
+            while (std::getline(ss, item, ','))
+            {
+                item.erase(0, item.find_first_not_of(' ')); // 去除前导空格
+                item.erase(item.find_last_not_of(' ') + 1); // 去除尾随空格
+                config[key].push_back(item);                // 将项添加到对应的键中
+            }
+        }
+    }
+    file.close();
+
+    // 打印
+    std::cout << ">> 配置文件 " << fileName << " 开始读取" << std::endl;
+    for (const auto &kv : config)
+    {
+        std::cout << kv.first << ": ";
+        for (const auto &value : kv.second)
+        {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << ">> 配置文件 " << fileName << " 已读取" << std::endl;
+}
+
+// 打印解析的配置
+void printConfig()
+{
+    for (const auto &kv : config)
+    {
+        std::cout << kv.first << ": ";
+        for (const auto &value : kv.second)
+        {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+    }
 }

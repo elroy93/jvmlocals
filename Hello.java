@@ -8,13 +8,19 @@ public class Hello {
     int id = 100;
 
     public static void main(String[] args) {
+        int a = 1;
+        Integer b = 2;
         try {
-            int a = 1;
-            Integer b = 2;
             new Hello().execute(a, b, "world");
+        } catch (Exception e) {
+
         } finally {
             print(" finally end ");
         }
+        // 空指针异常
+
+        String npe = null;
+        npe.length();
     }
 
     public void execute(int a, Integer b, String c) {
