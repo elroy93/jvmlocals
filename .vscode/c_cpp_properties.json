@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux", // 如果是Windows系统，改为 "name": "Win32"
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${env:JAVA_HOME}/include/**",
+                "${env:JAVA_HOME}/include/linux/**" // 如果是Windows，改为 `${env:JAVA_HOME}/include/win32`
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
