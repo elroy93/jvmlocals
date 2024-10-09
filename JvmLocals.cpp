@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
         {
             if (strcmp(str, ignoreException.c_str()) == 0)
             {
-                cout << "跳过当前异常: " << str << endl;
+                cout << ">> 跳过当前异常: " << str << endl;
                 return;
             }
         }
