@@ -3,7 +3,7 @@
 
 using namespace std;
 
-JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *, jclass, jstring)
+JNIEXPORT jstring JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *, jclass, jstring)
 {
 
     printf("Hello from C++\n");

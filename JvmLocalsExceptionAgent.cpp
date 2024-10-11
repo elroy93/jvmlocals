@@ -7,12 +7,262 @@
 #include <list>
 #include <sstream>
 
+// 测试一下agent是否可以被jni使用
+#include "github_elroy93_jvmlocals_JvmLocals.h"
+
 using namespace std;
+
+// 全局变量
+JavaVM *global_vm = nullptr;
+jvmtiEnv *global_jvmti = nullptr;
 
 std::map<std::string, std::list<std::string>> config;
 
 // 声明 readConfigFile 函数
 void readConfigFile(const std::string &fileName);
+#include "stdio.h"
+
+using namespace std;
+
+// Function to convert std::map to string
+template <typename K, typename V>
+std::string mapToString(const std::map<K, V> &m)
+{
+    std::ostringstream oss;
+    for (auto it = m.begin(); it != m.end(); ++it)
+    {
+        if (it != m.begin())
+        {
+            oss << ",";
+        }
+        oss << it->first << ": " << it->second;
+    }
+    return oss.str();
+}
+
+JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *jni_env, jclass, jobject varHolder)
+{
+    // jvmtiThreadInfo thread_info;
+    // memset(&thread_info, 0, sizeof(thread_info));
+
+    // 初始化 JVMTI 环境
+    jvmtiEnv *jvmti;
+    jint result = global_vm->GetEnv((void **)&jvmti, JVMTI_VERSION_1_1);
+    if (result != JNI_OK)
+    {
+        cerr << "Unable to access JVMTI!" << endl;
+        return varHolder;
+    }
+
+    // 获取线程信息
+    jvmtiThreadInfo thread_info;
+    memset(&thread_info, 0, sizeof(thread_info));
+
+    // 获取当前的线程
+    jthread thread;
+    jvmtiError err = jvmti->GetCurrentThread(&thread);
+    if (err != JVMTI_ERROR_NONE)
+    {
+        cerr << "Unable to get current thread!" << endl;
+        return varHolder;
+    }
+
+    // 获取线程信息
+    err = jvmti->GetThreadInfo(thread, &thread_info);
+    if (err == JVMTI_ERROR_NONE && thread_info.name != NULL)
+    {
+        cout << "Thread name: " << thread_info.name << endl;
+        jvmti->Deallocate((unsigned char *)thread_info.name);
+    }
+
+    // 打印上下文信息
+    // 获取堆栈帧信息
+    const int max_frames = 10;
+    jvmtiFrameInfo frames[max_frames];
+    jint frame_count = 0;
+
+    auto jvmti_env = global_jvmti;
+    err = jvmti_env->GetStackTrace(thread, 0, max_frames, frames, &frame_count);
+
+    cout << "Frame_Count: " << frame_count << endl;
+
+    if (err == JVMTI_ERROR_NONE && frame_count > 0)
+    {
+        std::map<std::string, std::string> kvMap;
+        for (int i = 0; i < frame_count; i++)
+        {
+            if (i != 1)
+            {
+                continue;
+            }
+
+            // 获取方法名和类名
+            char *method_name = NULL;
+            char *method_signature = NULL;
+            char *method_generic = NULL;
+            err = jvmti_env->GetMethodName(frames[i].method, &method_name, &method_signature, &method_generic);
+            if (err != JVMTI_ERROR_NONE)
+            {
+                continue;
+            }
+
+            jclass declaring_class;
+            err = jvmti_env->GetMethodDeclaringClass(frames[i].method, &declaring_class);
+            if (err != JVMTI_ERROR_NONE)
+            {
+                jvmti_env->Deallocate((unsigned char *)method_name);
+                jvmti_env->Deallocate((unsigned char *)method_signature);
+                jvmti_env->Deallocate((unsigned char *)method_generic);
+                continue;
+            }
+
+            char *class_name = NULL;
+            err = jvmti_env->GetClassSignature(declaring_class, &class_name, NULL);
+            if (err != JVMTI_ERROR_NONE)
+            {
+                jvmti_env->Deallocate((unsigned char *)method_name);
+                jvmti_env->Deallocate((unsigned char *)method_signature);
+                jvmti_env->Deallocate((unsigned char *)method_generic);
+                continue;
+            }
+
+            printf("Frame %d: %s.%s%s\n", i, class_name, method_name, method_signature);
+
+            // 获取本地变量表
+            jint entry_count = 0;
+            jvmtiLocalVariableEntry *table = NULL;
+            err = global_jvmti->GetLocalVariableTable(frames[i].method, &entry_count, &table);
+            // TODO 如果当前函数不是静态函数, 获取当前this对象的所有属性进行打印
+            if (err == JVMTI_ERROR_NONE && entry_count > 0)
+            {
+                // 使用 String.valueOf 获取对象的字符串表示
+                jclass stringClass = jni_env->FindClass("java/lang/String");
+                jmethodID valueOfMethod = jni_env->GetStaticMethodID(stringClass, "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;");
+                jmethodID putMethod = jni_env->GetMethodID(jni_env->GetObjectClass(varHolder), "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+                for (int j = 0; j < entry_count; j++)
+                {
+                    // 获取变量名称，签名和槽位
+                    char *var_name = table[j].name;
+                    char *var_signature = table[j].signature;
+                    jint var_slot = table[j].slot;
+                    jstring jstringKey = jni_env->NewStringUTF(var_name);
+
+                    // byte	jbyte	B               *
+                    // char	jchar	C               *
+                    // double	jdouble	D           *
+                    // float	jfloat	F           *
+                    // int	jint	I               *
+                    // short	jshort	S           *
+                    // long	jlong	J               *
+                    // boolean	jboolean	Z       *
+
+                    // 根据变量类型获取值
+                    if (var_signature[0] == 'B' || var_signature[0] == 'C' || var_signature[0] == 'I' || var_signature[0] == 'S' || var_signature[0] == 'Z')
+                    { // 整数类型
+                        jint value;
+                        err = jvmti_env->GetLocalInt(thread, i, var_slot, &value);
+                        if (err == JVMTI_ERROR_NONE)
+                        {
+                            std::string strValue = std::to_string(value);
+                            if (var_signature[0] == 'C')
+                            {
+                                strValue = "char_" + strValue;
+                            }
+                            else if (var_signature[0] == 'Z')
+                            {
+                                strValue = "bool_" + strValue;
+                            }
+                            kvMap[var_name] = strValue;
+                        }
+                    }
+                    else if (var_signature[0] == 'F')
+                    {
+                        jfloat value;
+                        err = jvmti_env->GetLocalFloat(thread, i, var_slot, &value);
+                        if (err == JVMTI_ERROR_NONE)
+                        {
+                            std::string strValue = std::to_string(value);
+                            kvMap[var_name] = strValue;
+                        }
+                    }
+                    else if (var_signature[0] == 'D')
+                    {
+                        jdouble value;
+                        err = jvmti_env->GetLocalDouble(thread, i, var_slot, &value);
+                        if (err == JVMTI_ERROR_NONE)
+                        {
+                            std::string strValue = std::to_string(value);
+                            kvMap[var_name] = strValue;
+                        }
+                    }
+                    else if (var_signature[0] == 'J')
+                    {
+                        jlong value;
+                        err = jvmti_env->GetLocalLong(thread, i, var_slot, &value);
+                        if (err == JVMTI_ERROR_NONE)
+                        {
+                            std::string strValue = std::to_string(value);
+                            kvMap[var_name] = strValue;
+                        }
+                    }
+
+                    else
+                    {
+                        // 对象类型
+                        jobject obj;
+                        err = jvmti_env->GetLocalObject(thread, i, var_slot, &obj);
+                        if (err == JVMTI_ERROR_NONE /* && obj != NULL */)
+                        {
+                            jstring jstringValue = (jstring)jni_env->CallStaticObjectMethod(stringClass, valueOfMethod, obj);
+                            // jstringvalue转成c++的字符串
+                            const char *str = jni_env->GetStringUTFChars(jstringValue, NULL);
+                            kvMap[var_name] = str;
+                            // 释放资源
+                            jni_env->ReleaseStringUTFChars(jstringValue, str);
+                            jni_env->DeleteLocalRef(jstringValue);
+                            jni_env->DeleteLocalRef(obj);
+                            jni_env->DeleteLocalRef(jstringKey);
+                        }
+                        else
+                        {
+                            // printf("  4 Local variable %s = %s, err = %d\n", var_name, "un_resolve", err);
+                        }
+                    }
+                    jni_env->DeleteLocalRef(jstringKey);
+                }
+
+                // 释放本地变量表
+                jvmti_env->Deallocate((unsigned char *)table);
+                jni_env->DeleteLocalRef(stringClass);
+                // jni_env->DeleteLocalRef(valueOfMethod);
+                // jni_env->DeleteLocalRef(putMethod);
+            }
+            else
+            {
+                printf("Unable to get local variable table. Error: %d\n", err);
+            }
+
+            // 释放资源
+            jvmti_env->Deallocate((unsigned char *)method_name);
+            jvmti_env->Deallocate((unsigned char *)method_signature);
+            if (method_generic != NULL)
+            {
+                jvmti_env->Deallocate((unsigned char *)method_generic);
+            }
+            jvmti_env->Deallocate((unsigned char *)class_name);
+        }
+        //
+        std::string kvMapStr = mapToString(kvMap);
+        // kvmMapStr转成jstring
+        jstring jstringKvMapStr = jni_env->NewStringUTF(kvMapStr.c_str());
+        // 释放本地的引用
+        // jni_env->DeleteLocalRef(jstringKvMapStr);
+
+        return jstringKvMapStr;
+    }
+    return varHolder;
+}
 
 JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
                                          JNIEnv *jni_env,
@@ -23,6 +273,11 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
                                          jmethodID catch_method,
                                          jlocation catch_location)
 {
+    if (true)
+    {
+        return;
+    }
+
     // 获取异常的类名
     jclass exc_class = jni_env->GetObjectClass(exception);
 
@@ -164,15 +419,6 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
                                 }
                                 else
                                 {
-                                    // 对于其他对象，调用 toString() 方法
-                                    // jclass objClass = jni_env->GetObjectClass(obj);
-                                    // jmethodID toStringMethod = jni_env->GetMethodID(objClass, "toString", "()Ljava/lang/String;");
-                                    // jstring strObj = (jstring)jni_env->CallObjectMethod(obj, toStringMethod);
-                                    // const char *str = jni_env->GetStringUTFChars(strObj, NULL);
-                                    // printf("  Local variable %s = %s\n", var_name, str);
-                                    // jni_env->ReleaseStringUTFChars(strObj, str);
-                                    // jni_env->DeleteLocalRef(strObj);
-                                    // jni_env->DeleteLocalRef(objClass);
 
                                     // 使用 String.valueOf 获取对象的字符串表示
                                     jclass stringClass = jni_env->FindClass("java/lang/String");
@@ -212,6 +458,7 @@ JNIEXPORT void JNICALL ExceptionCallback(jvmtiEnv *jvmti_env,
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 {
     readConfigFile("config.ini");
+    global_vm = vm; // 将传入的 JavaVM* vm 保存成全局变量
 
     // 初始化 JVMTI 环境
     jvmtiEnv *jvmti;
@@ -221,6 +468,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
         cerr << "Unable to access JVMTI!" << endl;
         return result;
     }
+    global_jvmti = jvmti; // 将 JVMTI 环墋保存成全局变量
 
     // 请求需要的能力
     jvmtiCapabilities capabilities;
@@ -233,6 +481,14 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     {
         cerr << "Unable to add capabilities (" << err << ")" << endl;
         return JNI_ERR;
+    }
+
+    // 读取配置文件的内容. 如果isExceptionPrintVariable的数值=false, 则不注册异常事件回调,但是能力还得获取
+    auto isExceptionPrintVariable = config["isExceptionPrintVariable"];
+    if (isExceptionPrintVariable.size() > 0 && isExceptionPrintVariable.front() == "false")
+    {
+        cout << ">> 异常不自动打印局部变量" << endl;
+        return JNI_OK;
     }
 
     // 注册异常事件回调
