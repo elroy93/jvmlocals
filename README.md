@@ -38,6 +38,8 @@ public class JvmLocals {
     static {
         System.loadLibrary("JvmLocalsAgent");
     }
+
+    // jni接口
     public native static Object getLocals(Map varHolder);
 
     public static void main(String[] args) {
@@ -55,8 +57,9 @@ public class JvmLocals {
         int[] _arr_int = new int[]{1, 2, 3};
         var _string_y = "y";
         String _string_z = "z";
-        //
-        var result = (String)getLocals(new HashMap());
+
+        // 获取变量信息, 返回的string类型
+        String result = (String)getLocals(new HashMap());
         //
         String string_null = null;
 
