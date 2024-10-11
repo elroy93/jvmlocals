@@ -9,49 +9,47 @@ LDFLAGS=-lrt -lpthread
 # 变量
 JVM_LOCALS=JvmLocals
 JVM_LOCALS_AGENT=JvmLocalsAgent
+JAVA_DIR_PATH=github/elroy93/jvmlocals
 
 # 源码文件列表
-AGENT_SRC=${JVM_LOCALS_AGENT}.cpp
-JVM_LOCALS_JNI_HEADER_JAVA_SRC=github/elroy93/jvmlocals/${JVM_LOCALS}.java
-JAVA_TEST_SRC=test/Hello.java
-JAVA_TEST_CLASS=test.Hello
+SRC_AGENT_CPP=${JVM_LOCALS_AGENT}.cpp
+SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA=${JAVA_DIR_PATH}/${JVM_LOCALS}.java
 
 # 生成的文件 
-AGENT_SO=lib${JVM_LOCALS_AGENT}.so
-JVM_LOCALS_JNI_HEADER=github_elroy93_jvmlocals_${JVM_LOCALS}.h
+TARGET_FILE_AGENT_SO=lib${JVM_LOCALS_AGENT}.so
+TARGET_FILE_JVM_LOCALS_JNI_HEADER=github_elroy93_jvmlocals_${JVM_LOCALS}.h
 
 # java的编译阐述
 JAVAC=javac
 JAVA=java
-JAVAFLAGS=-agentpath:./${AGENT_SO} -XX:+ShowMessageBoxOnError -Xint -XX:-UseCompressedOops -XX:-TieredCompilation
-
-##################################################
-
-# 默认目标，编译C++库
-all: $(AGENT_SO)
-	@echo "=== 编译完成 ==="
-
-# 编译C++共享库
-$(AGENT_SO): $(AGENT_SRC) $(JVM_LOCALS_JNI_HEADER)
-	$(CXX) $(CXXFLAGS) $(AGENT_SRC) -o $(AGENT_SO) $(LDFLAGS)
-	@echo "=== Agent C++ 编译完成 ==="
-
-$(JVM_LOCALS_JNI_HEADER): $(JVM_LOCALS_JNI_HEADER_JAVA_SRC)
-	${JAVAC} -encoding UTF-8 -h . $(JVM_LOCALS_JNI_HEADER_JAVA_SRC)
-	rm -rf $(JVM_LOCALS).class
-	@echo "=== JNI 头文件生成完成 ==="
-
+JAVACFLAGS= -g:lines,vars,source -encoding UTF-8
+JAVAFLAGS=-agentpath:./${TARGET_FILE_AGENT_SO} -Djava.library.path=./ -XX:+ShowMessageBoxOnError -Xint -XX:-UseCompressedOops -XX:-TieredCompilation
 
 ##################################################################################
 
-test: $(AGENT_SO) 
+# 默认目标，编译C++库
+all: $(TARGET_FILE_AGENT_SO)
+	@echo "=== 编译完成 ==="
+
+# 编译C++共享库
+$(TARGET_FILE_AGENT_SO): $(SRC_AGENT_CPP) $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
+	$(CXX) $(CXXFLAGS) $(SRC_AGENT_CPP) -o $(TARGET_FILE_AGENT_SO) $(LDFLAGS)
+	@echo "=== Agent C++ 编译完成 ==="
+
+$(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
+	${JAVAC} -h . $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
+	rm -rf $(JVM_LOCALS).class
+	@echo "=== JNI 头文件生成完成 ==="
+
+##################################################################################
+
+test: $(TARGET_FILE_AGENT_SO) 
 	@echo "=== 测试jni程序开始运行 ==="
-	# 测试JvmLocals动态库, 使用agent加载jvmti, 通过jni调用动态库
-	$(JAVAC) -g:lines,vars,source ./github/elroy93/jvmlocals/$(JVM_LOCALS).java
-	$(JAVA) $(JAVAFLAGS) -Djava.library.path=./ github/elroy93/jvmlocals/$(JVM_LOCALS)
+	$(JAVAC) $(JAVACFLAGS) ./$(JAVA_DIR_PATH)/$(JVM_LOCALS).java
+	$(JAVA) $(JAVAFLAGS) $(JAVA_DIR_PATH)/$(JVM_LOCALS)
 	@echo "=== 测试jni程序运行完成 ==="
 
-genjni: $(JVM_LOCALS_JNI_HEADER)
+genjni: $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
 
 # 清理生成的文件
 clean:
