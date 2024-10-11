@@ -4,9 +4,9 @@
 
 想法来源于 python 的 locals()函数, 返回当前栈帧的局部变量信息
 
-
 1. libJvmLocalsExceptionAgent.so : 当出现异常时, 获取当前线程的局部变量信息
-2. 
+2.
+
 ## 如何运行本项目
 
 ```shell
@@ -20,45 +20,71 @@ make clean
 make
 ```
 
-
-
 ## 演示
 
 > 1. 测试代码, 未经过生产验证.
 
 ```java
-   public void doexecute(int a, Integer b, String c) {
-       System.out.println(">>>>> execute");
-       int dd = 100;
-       String ff = "fff";
-       ff = null;
-       var inner = new Inner();
-       throw new RuntimeException(">>>>> hello " + c);
-   }
+package github.elroy93.jvmlocals;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author elroysu
+ * @date 2024/10/11 20:52
+ */
+public class JvmLocals {
+    static {
+        System.loadLibrary("JvmLocalsExceptionAgent");
+    }
+    public native static Object getLocals(Map varHolder);
+
+    public static void main(String[] args) {
+        execute();
+    }
+    public static void execute() {
+        final byte _byte_a = 1;
+        final short _short_b = 2;
+        final int _int_c = 3;
+        final long _long_d = 4;
+        final float _float_e = 5;
+        final double _double_f = 6;
+        final char _char_g = 'g';
+        final boolean _boolean_h = true;
+        int[] _arr_int = new int[]{1, 2, 3};
+        var _string_y = "y";
+        String _string_z = "z";
+        //
+        var result = (String)getLocals(new HashMap());
+        //
+        String string_null = null;
+
+        var varArr = result.split(",");
+        System.out.println(">>>>>>>>>>> jvmlocals start <<<<<<<<<<<<");
+        for (String item : varArr) {
+            System.out.println(item);
+        }
+        System.out.println(">>>>>>>>>>> jvmlocals done <<<<<<<<<<<<");
+    }
+
+}
+
 ```
 
 ```shell
-Agent_OnLoad(0x7fbd89b4cb60)
->>>>> execute
->>>> id 101
-ExceptionCallback invoked
-Exception occurred: Ljava/lang/NullPointerException;
-In thread: main
-Frame 0: LHello;.doexecute(ILjava/lang/Integer;Ljava/lang/String;)V
-  ################## 变量信息 ##################
-  Local variable this = test.Hello@4c3e4790
-  Local variable a = 1
-  Local variable b = 2
-  Local variable c = world
-  Local variable dd = 100
-  Local variable ff = null
-  Local variable inner = test.Hello$Inner@38cccef
-################## 变量信息 ##################
-Frame 1: LHello;.execute(ILjava/lang/Integer;Ljava/lang/String;)V
-Frame 2: LHello;.main([Ljava/lang/String;)V
-Exception in thread "main" java.lang.NullPointerException
-        at test.Hello.doexecute(test.Hello.java:29)
-        at test.Hello.execute(test.Hello.java:16)
-        at test.Hello.main(test.Hello.java:12)
-Agent_OnUnload(0x7fbd89b4cb60)
+Frame 1: Lgithub/elroy93/jvmlocals/JvmLocals;.execute()V
+>>>>>>>>>>> jvmlocals start <<<<<<<<<<<<
+_arr_int: [I@2a139a55
+_boolean_h: bool_1
+_byte_a: 1
+_char_g: char_103
+_double_f: 6.000000
+_float_e: 5.000000
+_int_c: 3
+_long_d: 4
+_short_b: 2
+_string_y: y
+_string_z: z
+>>>>>>>>>>> jvmlocals done <<<<<<<<<<<<
 ```
