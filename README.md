@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public class JvmLocals {
     static {
-        System.loadLibrary("JvmLocalsExceptionAgent");
+        System.loadLibrary("JvmLocalsAgent");
     }
     public native static Object getLocals(Map varHolder);
 

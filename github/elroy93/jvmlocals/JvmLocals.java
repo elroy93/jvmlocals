@@ -12,7 +12,7 @@ public class JvmLocals {
     // libJvmLocals.so
     static {
         // System.loadLibrary("JvmLocals");
-        System.loadLibrary("JvmLocalsExceptionAgent");
+        System.loadLibrary("JvmLocalsAgent");
     }
 
     public native static Object getLocals(Map varHolder);

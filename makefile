@@ -8,16 +8,17 @@ LDFLAGS=-lrt -lpthread
 
 # 变量
 JVM_LOCALS=JvmLocals
+JVM_LOCALS_AGENT=JvmLocalsAgent
 
 # 源码文件列表
-AGENT_SRC=JvmLocalsExceptionAgent.cpp
+AGENT_SRC=${JVM_LOCALS_AGENT}.cpp
 JVM_LOCALS_JNI_HEADER_JAVA_SRC=github/elroy93/jvmlocals/${JVM_LOCALS}.java
 JVM_LOCALS_JNI_SO_SRC=${JVM_LOCALS}.cpp
 JAVA_TEST_SRC=test/Hello.java
 JAVA_TEST_CLASS=test.Hello
 
 # 生成的文件 
-AGENT_SO=libJvmLocalsExceptionAgent.so
+AGENT_SO=lib${JVM_LOCALS_AGENT}.so
 JVM_LOCALS_JNI_HEADER=github_elroy93_jvmlocals_${JVM_LOCALS}.h
 JVM_LOCALS_JNI_SO=lib${JVM_LOCALS}.so
 
