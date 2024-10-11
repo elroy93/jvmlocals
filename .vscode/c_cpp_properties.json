@@ -1,11 +1,11 @@
 {
   "configurations": [
     {
-      "name": "Linux", // 如果是Windows系统，改为 "name": "Win32"
+      "name": "Linux", 
       "includePath": [
         "${workspaceFolder}/**",
         "${env:JAVA_HOME}/include",
-        "${env:JAVA_HOME}/include/linux" // 如果是Windows，改为 `${env:JAVA_HOME}/include/win32`
+        "${env:JAVA_HOME}/include/linux" 
       ],
       "defines": [],
       "compilerPath": "/usr/bin/g++",

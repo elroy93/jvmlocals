@@ -4,6 +4,9 @@
 
 想法来源于 python 的 locals()函数, 返回当前栈帧的局部变量信息
 
+
+1. libJvmLocalsExceptionAgent.so : 当出现异常时, 获取当前线程的局部变量信息
+2. 
 ## 如何运行本项目
 
 ```shell
@@ -16,6 +19,8 @@ make clean
 # 编译动态库
 make
 ```
+
+
 
 ## 演示
 
