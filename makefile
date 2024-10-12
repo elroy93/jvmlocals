@@ -55,6 +55,6 @@ genjni: $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
 
 # 清理生成的文件
 clean:
-	rm -f *.so *.class *.h *.log
+	rm -f *.so *.class  *.log
 	find . -name "*.class" -type f -delete
 	@echo "=== 清理完成 ==="
