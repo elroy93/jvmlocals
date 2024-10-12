@@ -38,6 +38,10 @@ public class JvmLocals {
         //
         String string_null = null;
 
+        if(result == null) {
+            System.out.println("result is null");
+            return;
+        }
 
         var varArr = result.split(",");
         System.out.println(">>>>>>>>>>> jvmlocals start <<<<<<<<<<<<");
