@@ -77,7 +77,7 @@ genjni: $(fileName_targetJavaHeader)
 # Clean generated files
 clean:
 	-$(RM) *.so *.dll *.log
-	gradle clean --warning-mode all
+	-gradle clean --warning-mode all
 	@echo "😜 === Clean Complete ==="
 
 # Check ldd 
