@@ -134,11 +134,12 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
                         std::string strValue = std::to_string(value);
                         if (var_signature[0] == 'C')
                         {
-                            strValue = "char_" + strValue;
+                            // int类型转成char字符串
+                            strValue = std::string(1, (char)value);
                         }
                         else if (var_signature[0] == 'Z')
                         {
-                            strValue = "bool_" + strValue;
+                            strValue = value == 1 ? "true" : "false";
                         }
                         kvMap[var_name] = strValue;
                     }
