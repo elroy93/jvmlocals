@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     github_elroy93_jvmlocals_JvmLocals
  * Method:    getLocals
- * Signature: (Ljava/util/Map;)Ljava/lang/Object;
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals
-  (JNIEnv *, jclass, jobject);
+JNIEXPORT jstring JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals
+  (JNIEnv *, jclass, jstring);
 
 #ifdef __cplusplus
 }

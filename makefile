@@ -32,6 +32,7 @@ packageName_javaPackage=github.elroy93.jvmlocals
 
 dir_javaFile=$(dir_javaSrc)/$(subst .,/,$(packageName_javaPackage))
 path_javaFile=$(dir_javaFile)/$(fileName_javaJvmLocals).java
+path_javaHeaderClass = $(dir_javaFile)/$(fileName_javaJvmLocals).class
 fileName_agentCpp=$(fileName_jvmLocalsAgentSo).cpp
 
 # Generated files
@@ -58,7 +59,7 @@ $(TARGET_LIB): $(fileName_agentCpp) $(fileName_targetJavaHeader)
 # Generate JNI header file
 $(fileName_targetJavaHeader): $(path_javaFile)
 	$(JAVAC) -h . $(path_javaFile)
-	$(RM) $(fileName_javaJvmLocals).class
+	$(RM) $(path_javaHeaderClass)
 	@echo "😜 === JNI Header Generation Complete ==="
 
 ##################################################################################
@@ -73,10 +74,12 @@ test: $(TARGET_LIB)
 	@echo "😜 === JNI Program Test Complete ==="
 
 genjni: $(fileName_targetJavaHeader)
+	@echo "😜 === JNI Header Generation Complete ==="
 
 # Clean generated files
 clean:
 	-$(RM) *.so *.dll *.log
+	-$(RM) $(path_javaHeaderClass)
 	-gradle clean --warning-mode all
 	@echo "😜 === Clean Complete ==="
 

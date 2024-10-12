@@ -29,7 +29,7 @@ std::string mapToString(const std::map<K, V> &m)
     return oss.str();
 }
 
-JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *jni_env, jclass, jobject)
+JNIEXPORT jstring JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *jni_env, jclass, jstring)
 {
     // 没有使用agent
     if (global_vm == nullptr || global_jvmti == nullptr)
@@ -67,10 +67,11 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
     std::map<std::string, std::string> kvMap;
     for (int i = 0; i < frame_count; i++)
     {
-        // if (i != 1)
-        // {
-        //     continue;
-        // }
+    // 只显示调用栈的第一帧
+         if (i != 1)
+         {
+             continue;
+         }
         // 获取本地变量表
         jint entry_count = 0;
         jvmtiLocalVariableEntry *table = NULL;
@@ -83,7 +84,7 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
             cerr << "Error getting frame location: " << err << endl;
             continue; // or handle appropriately
         }
-        cout << "Frame " << i << " location: " << location << endl;
+//        cout << "Frame " << i << " location: " << location << endl;
 
         err = global_jvmti->GetLocalVariableTable(frames[i].method, &entry_count, &table);
         if (err != JVMTI_ERROR_NONE)

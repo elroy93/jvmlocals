@@ -5,7 +5,16 @@ plugins {
 group = 'github.elroy93'
 version = '1.0-SNAPSHOT'
 
+// some global variables
+def osName = System.getProperty("os.name").toLowerCase()
+def isLinux = osName.contains("linux")
+def rootProjectPath = rootProject.getProjectDir().getAbsolutePath()
+//
+
 repositories {
+    maven {
+        url "https://maven.aliyun.com/repository/public"
+    }
     mavenCentral()
 }
 
@@ -16,10 +25,28 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation platform('org.junit:junit-bom:5.11.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
 }
 
+
+
+
 test {
+    println("---------- test start ----------")
+    List<String> args = new ArrayList<>();
+    if (isLinux) {
+        args.add("-agentpath:${rootProjectPath}/libJvmLocalsAgent.so");
+    } else {
+        args.add("-agentpath:${rootProjectPath}/JvmLocalsAgent.dll");
+    }
+    args.add("-Djava.library.path=${rootProjectPath}")
+    args.add("-XX:+ShowMessageBoxOnError")
+    args.add("-Xint")
+    args.add("-XX:-UseCompressedOops")
+    args.add("-XX:-TieredCompilation")
+    jvmArgs(args);
+
     useJUnitPlatform()
 }
