@@ -40,10 +40,6 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
     // 引用一下jvmti的环境
     auto jvmti = global_jvmti;
 
-    // 获取线程信息
-    jvmtiThreadInfo thread_info;
-    memset(&thread_info, 0, sizeof(thread_info));
-
     // 获取当前的线程
     jthread thread;
     jvmtiError err = jvmti->GetCurrentThread(&thread);
@@ -61,12 +57,12 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
     auto jvmti_env = global_jvmti;
     err = jvmti_env->GetStackTrace(thread, 0, max_frames, frames, &frame_count);
 
-    cout << "Frame_Count: " << frame_count << endl;
-
-    if (frame_count <= 0)
+    if (err != JVMTI_ERROR_NONE || frame_count <= 0)
     {
+        cerr << "Unable to get stack trace! err=" << err << ", frame_count=" << frame_count << endl;
         return nullptr;
     }
+    cout << "Frame_Count: " << frame_count << endl;
 
     std::map<std::string, std::string> kvMap;
     for (int i = 0; i < frame_count; i++)
@@ -75,16 +71,10 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
         {
             continue;
         }
-
         // 获取本地变量表
         jint entry_count = 0;
         jvmtiLocalVariableEntry *table = NULL;
         err = global_jvmti->GetLocalVariableTable(frames[i].method, &entry_count, &table);
-        if (err == JVMTI_ERROR_ABSENT_INFORMATION)
-        {
-            cerr << "Debug information is not available for this method." << endl;
-            continue; // or handle appropriately
-        }
         if (err != JVMTI_ERROR_NONE)
         {
             cerr << "Error getting local variable table: " << err << endl;
@@ -94,14 +84,8 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
         {
             continue;
         }
-        // 处理逻辑上下文变量信息
-        // 获取方法名和类名
-        char *method_name = NULL;
-        char *method_signature = NULL;
-        char *method_generic = NULL;
-        char *class_name = NULL;
         {
-
+            // 处理逻辑上下文变量信息
             // 使用 String.valueOf 获取对象的字符串表示
             jclass stringClass = jni_env->FindClass("java/lang/String");
             jmethodID valueOfMethod = jni_env->GetStaticMethodID(stringClass, "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;");
@@ -200,14 +184,6 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
             jvmti_env->Deallocate((unsigned char *)table);
             jni_env->DeleteLocalRef(stringClass);
         }
-        // 释放资源
-        jvmti_env->Deallocate((unsigned char *)method_name);
-        jvmti_env->Deallocate((unsigned char *)method_signature);
-        if (method_generic != NULL)
-        {
-            jvmti_env->Deallocate((unsigned char *)method_generic);
-        }
-        jvmti_env->Deallocate((unsigned char *)class_name);
     }
     //
     std::string kvMapStr = mapToString(kvMap);
