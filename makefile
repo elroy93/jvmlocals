@@ -6,7 +6,7 @@ PLATFORM=Linux
 ifeq ($(OS),Windows_NT)
 	# Windows settings
 	CXX=g++
-	TARGET_LIB=$(JVM_LOCALS_AGENT).dll
+	TARGET_LIB=$(fileName_jvmLocalsAgentSo).dll
 	JAVA_INCLUDE_PLATFORM=win32
 	LDFLAGS=
 	RM=del /F /Q
@@ -15,7 +15,7 @@ ifeq ($(OS),Windows_NT)
 else
 	# Linux settings
 	CXX=g++
-	TARGET_LIB=lib$(JVM_LOCALS_AGENT).so
+	TARGET_LIB=lib$(fileName_jvmLocalsAgentSo).so
 	JAVA_INCLUDE_PLATFORM=linux
 	LDFLAGS=-lrt -lpthread
 	RM=rm -f
@@ -25,20 +25,18 @@ endif
 CXXFLAGS=-shared -fPIC -O2 -std=c++11 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/$(JAVA_INCLUDE_PLATFORM)
 
 # Variables
-JVM_LOCALS_JAVA_FILE_NAME=JvmLocals
-JVM_LOCALS_AGENT=JvmLocalsAgent
-JAVA_DIR_SRC_PATH=src/main/java
-JAVA_PACKAGE_NAME=github.elroy93.jvmlocals
-JAVA_PACKAGE_PATH=$(subst .,/,$(JAVA_PACKAGE_NAME))
-JAVA_DIR_PATH=$(JAVA_DIR_SRC_PATH)/$(JAVA_PACKAGE_PATH)
+fileName_javaJvmLocals=JvmLocals
+fileName_jvmLocalsAgentSo=JvmLocalsAgent
+dir_javaSrc=src/main/java
+packageName_javaPackage=github.elroy93.jvmlocals
 
-# Source file list
-SRC_AGENT_CPP=$(JVM_LOCALS_AGENT).cpp
-SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA=$(JAVA_DIR_PATH)/$(JVM_LOCALS_JAVA_FILE_NAME).java
+dir_javaFile=$(dir_javaSrc)/$(subst .,/,$(packageName_javaPackage))
+path_javaFile=$(dir_javaFile)/$(fileName_javaJvmLocals).java
+fileName_agentCpp=$(fileName_jvmLocalsAgentSo).cpp
 
 # Generated files
-TARGET_FILE_AGENT=$(TARGET_LIB)
-TARGET_FILE_JVM_LOCALS_JNI_HEADER=github_elroy93_jvmlocals_${JVM_LOCALS_JAVA_FILE_NAME}.h
+fileName_targetAgentLib=$(TARGET_LIB)
+fileName_targetJavaHeader=github_elroy93_jvmlocals_${fileName_javaJvmLocals}.h
 
 # Java compiler and options
 JAVAC=javac
@@ -53,14 +51,14 @@ all: $(TARGET_LIB)
 	@echo "😜 === Compilation Complete on ${PLATFORM}==="
 
 # Compile the C++ shared library
-$(TARGET_LIB): $(SRC_AGENT_CPP) $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
-	$(CXX) $(CXXFLAGS) $(SRC_AGENT_CPP) -o $(TARGET_LIB) $(LDFLAGS)
+$(TARGET_LIB): $(fileName_agentCpp) $(fileName_targetJavaHeader)
+	$(CXX) $(CXXFLAGS) $(fileName_agentCpp) -o $(TARGET_LIB) $(LDFLAGS)
 	@echo "😜 === Agent C++ Compilation Complete ==="
 
 # Generate JNI header file
-$(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
-	$(JAVAC) -h . $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
-	$(RM) $(JVM_LOCALS_JAVA_FILE_NAME).class
+$(fileName_targetJavaHeader): $(path_javaFile)
+	$(JAVAC) -h . $(path_javaFile)
+	$(RM) $(fileName_javaJvmLocals).class
 	@echo "😜 === JNI Header Generation Complete ==="
 
 ##################################################################################
@@ -68,11 +66,11 @@ $(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JA
 # Test
 test: $(TARGET_LIB)
 	@echo "😜 === Starting JNI Program Test ==="
-	$(JAVAC) $(JAVACFLAGS) $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
-	$(JAVA) $(JAVAFLAGS) -classpath $(JAVA_DIR_SRC_PATH) $(JAVA_PACKAGE_NAME).$(JVM_LOCALS_JAVA_FILE_NAME)
+	$(JAVAC) $(JAVACFLAGS) $(path_javaFile)
+	$(JAVA) $(JAVAFLAGS) -classpath $(dir_javaSrc) $(packageName_javaPackage).$(fileName_javaJvmLocals)
 	@echo "😜 === JNI Program Test Complete ==="
 
-genjni: $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
+genjni: $(fileName_targetJavaHeader)
 
 # Clean generated files
 clean:
