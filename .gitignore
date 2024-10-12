@@ -3,5 +3,5 @@
 /.gradle/
 /build/
 JvmLocalsAgent.dll
-JvmLocalsAgent.so
+libJvmLocalsAgent.so
 **/*.class
