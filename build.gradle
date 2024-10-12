@@ -35,7 +35,7 @@ dependencies {
 
 test {
     println("---------- test start ----------")
-    List<String> args = new ArrayList<>();
+    def args = new ArrayList<String>();
     if (isLinux) {
         args.add("-agentpath:${rootProjectPath}/libJvmLocalsAgent.so");
     } else {

@@ -118,6 +118,12 @@ JNIEXPORT jstring JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
                 jint var_slot = table[j].slot;
                 jstring jstringKey = jni_env->NewStringUTF(var_name);
 
+                // 如果var_name是this, 则跳过
+                if (strcmp(var_name, "this") == 0)
+				{
+					continue;
+				}
+
                 // byte	        jbyte	    B  *
                 // char	        jchar	    C  *
                 // double	    jdouble	    D  *

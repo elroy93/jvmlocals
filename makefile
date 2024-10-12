@@ -66,11 +66,7 @@ $(fileName_targetJavaHeader): $(path_javaFile)
 
 # Test
 test: $(TARGET_LIB)
-	@echo "😜 === Starting JNI Program Test ==="
-	# 😜 Compile Java program use gradle , only show err message 
-	gradle build -x test -q
-	# 😜 Start to run Java
-	$(JAVA) $(JAVAFLAGS) -classpath ./build/classes/java/main $(packageName_javaPackage).$(fileName_javaJvmLocals)
+	gradle test
 	@echo "😜 === JNI Program Test Complete ==="
 
 genjni: $(fileName_targetJavaHeader)
