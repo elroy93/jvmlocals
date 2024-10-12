@@ -4,3 +4,4 @@
 /build/
 JvmLocalsAgent.dll
 JvmLocalsAgent.so
+**/*.class
