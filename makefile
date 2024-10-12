@@ -19,7 +19,6 @@ else
 	JAVA_INCLUDE_PLATFORM=linux
 	LDFLAGS=-lrt -lpthread
 	RM=rm -f
-	RMR=find . -name "*.class" -type f -delete
 endif
 
 # C++ compiler and compile options
@@ -81,7 +80,7 @@ clean:
 ifeq ($(OS),Windows_NT)
 	-$(RMR) *.class
 else
-	-$(RMR)
+	find . -name "*.class" -type f -delete
 endif
 	@echo "😜 === Clean Complete ==="
 
