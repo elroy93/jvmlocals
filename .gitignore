@@ -1,3 +1,6 @@
 /jvmlocals.iml
 /.idea/
 /.gradle/
+/build/
+JvmLocalsAgent.dll
+JvmLocalsAgent.so
