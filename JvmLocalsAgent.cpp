@@ -6,8 +6,6 @@
 #include <map>
 #include <list>
 #include <sstream>
-
-// 测试一下agent是否可以被jni使用
 #include "github_elroy93_jvmlocals_JvmLocals.h"
 
 using namespace std;
@@ -15,10 +13,6 @@ using namespace std;
 // 全局变量
 JavaVM *global_vm = nullptr;
 jvmtiEnv *global_jvmti = nullptr;
-
-#include "stdio.h"
-
-using namespace std;
 
 template <typename K, typename V>
 std::string mapToString(const std::map<K, V> &m)
@@ -35,7 +29,7 @@ std::string mapToString(const std::map<K, V> &m)
     return oss.str();
 }
 
-JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *jni_env, jclass, jobject varHolder)
+JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIEnv *jni_env, jclass, jobject)
 {
     // 没有使用agent
     if (global_vm == nullptr || global_jvmti == nullptr)
@@ -56,7 +50,7 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
     if (err != JVMTI_ERROR_NONE)
     {
         cerr << "Unable to get current thread!" << endl;
-        return varHolder;
+        return nullptr;
     }
 
     // 获取堆栈帧信息
@@ -82,23 +76,35 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
             continue;
         }
 
+        // 获取本地变量表
+        jint entry_count = 0;
+        jvmtiLocalVariableEntry *table = NULL;
+        err = global_jvmti->GetLocalVariableTable(frames[i].method, &entry_count, &table);
+        if (err == JVMTI_ERROR_ABSENT_INFORMATION)
+        {
+            cerr << "Debug information is not available for this method." << endl;
+            continue; // or handle appropriately
+        }
+        if (err != JVMTI_ERROR_NONE)
+        {
+            cerr << "Error getting local variable table: " << err << endl;
+            continue; // or handle appropriately
+        }
+        if (entry_count <= 0)
+        {
+            continue;
+        }
+        // 处理逻辑上下文变量信息
         // 获取方法名和类名
         char *method_name = NULL;
         char *method_signature = NULL;
         char *method_generic = NULL;
         char *class_name = NULL;
-
-        // 获取本地变量表
-        jint entry_count = 0;
-        jvmtiLocalVariableEntry *table = NULL;
-        err = global_jvmti->GetLocalVariableTable(frames[i].method, &entry_count, &table);
-
-        if (err == JVMTI_ERROR_NONE && entry_count > 0)
         {
+
             // 使用 String.valueOf 获取对象的字符串表示
             jclass stringClass = jni_env->FindClass("java/lang/String");
             jmethodID valueOfMethod = jni_env->GetStaticMethodID(stringClass, "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;");
-            jmethodID putMethod = jni_env->GetMethodID(jni_env->GetObjectClass(varHolder), "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
             for (int j = 0; j < entry_count; j++)
             {
@@ -181,7 +187,6 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
                         jni_env->ReleaseStringUTFChars(jstringValue, str);
                         jni_env->DeleteLocalRef(jstringValue);
                         jni_env->DeleteLocalRef(obj);
-                        jni_env->DeleteLocalRef(jstringKey);
                     }
                     else
                     {
@@ -195,11 +200,6 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
             jvmti_env->Deallocate((unsigned char *)table);
             jni_env->DeleteLocalRef(stringClass);
         }
-        else
-        {
-            cerr << "Unable to get local variable table. Error: " << err << endl;
-        }
-
         // 释放资源
         jvmti_env->Deallocate((unsigned char *)method_name);
         jvmti_env->Deallocate((unsigned char *)method_signature);
