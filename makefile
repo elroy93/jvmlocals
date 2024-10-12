@@ -9,7 +9,9 @@ LDFLAGS=-lrt -lpthread
 # 变量
 JVM_LOCALS=JvmLocals
 JVM_LOCALS_AGENT=JvmLocalsAgent
-JAVA_DIR_PATH=github/elroy93/jvmlocals
+JAVA_DIR_SRC=src/main/java
+JAVA_DIR_PATH=${JAVA_DIR_SRC}/github/elroy93/jvmlocals
+JAVA_PACKAGE_NAME=github.elroy93.jvmlocals
 
 # 源码文件列表
 SRC_AGENT_CPP=${JVM_LOCALS_AGENT}.cpp
@@ -48,7 +50,7 @@ $(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JA
 test: $(TARGET_FILE_AGENT_SO) 
 	@echo "😜 === 测试jni程序开始运行 ==="
 	$(JAVAC) $(JAVACFLAGS) ./$(JAVA_DIR_PATH)/$(JVM_LOCALS).java
-	$(JAVA) $(JAVAFLAGS) $(JAVA_DIR_PATH)/$(JVM_LOCALS)
+	$(JAVA) $(JAVAFLAGS) -classpath ${JAVA_DIR_SRC} ${JAVA_PACKAGE_NAME}.$(JVM_LOCALS)
 	@echo "😜 === 测试jni程序运行完成 ==="
 
 genjni: $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
