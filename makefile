@@ -66,22 +66,21 @@ $(fileName_targetJavaHeader): $(path_javaFile)
 # Test
 test: $(TARGET_LIB)
 	@echo "😜 === Starting JNI Program Test ==="
-	$(JAVAC) $(JAVACFLAGS) $(path_javaFile)
-	$(JAVA) $(JAVAFLAGS) -classpath $(dir_javaSrc) $(packageName_javaPackage).$(fileName_javaJvmLocals)
+	# 😜 Compile Java program use gradle , only show err message 
+	gradle build -x test -q
+	# 😜 Start to run Java
+	$(JAVA) $(JAVAFLAGS) -classpath ./build/classes/java/main $(packageName_javaPackage).$(fileName_javaJvmLocals)
 	@echo "😜 === JNI Program Test Complete ==="
 
 genjni: $(fileName_targetJavaHeader)
 
 # Clean generated files
 clean:
-	-$(RM) *.so *.dll *.class *.log
-ifeq ($(OS),Windows_NT)
-	-$(RMR) *.class
-else
-	find . -name "*.class" -type f -delete
-endif
+	-$(RM) *.so *.dll *.log
+	gradle clean --warning-mode all
 	@echo "😜 === Clean Complete ==="
 
+# Check ldd 
 check_ldd: $(TARGET_LIB)
 ifeq ($(OS),Windows_NT)
 	@echo "😜 ldd command is not available on Windows"

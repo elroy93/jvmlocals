@@ -9,6 +9,12 @@ repositories {
     mavenCentral()
 }
 
+// 设置编译参数 -g:lines,vars,source -encoding UTF-8
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.add('-g:lines,vars,source')
+}
+
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
