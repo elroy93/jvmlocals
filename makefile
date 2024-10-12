@@ -29,27 +29,27 @@ JAVAFLAGS=-agentpath:./${TARGET_FILE_AGENT_SO} -Djava.library.path=./ -XX:+ShowM
 
 # 默认目标，编译C++库
 all: $(TARGET_FILE_AGENT_SO)
-	@echo "=== 编译完成 ==="
+	@echo "😜 === 编译完成 ==="
 
 # 编译C++共享库
 $(TARGET_FILE_AGENT_SO): $(SRC_AGENT_CPP) $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
 	$(CXX) $(CXXFLAGS) $(SRC_AGENT_CPP) -o $(TARGET_FILE_AGENT_SO) $(LDFLAGS)
-	@echo "=== Agent C++ 编译完成 ==="
+	@echo "😜 === Agent C++ 编译完成 ==="
 
 # 生成头文件
 $(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
 	${JAVAC} -h . $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
 	rm -rf $(JVM_LOCALS).class
-	@echo "=== JNI 头文件生成完成 ==="
+	@echo "😜 === JNI 头文件生成完成 ==="
 
 ##################################################################################
 
 # 测试
 test: $(TARGET_FILE_AGENT_SO) 
-	@echo "=== 测试jni程序开始运行 ==="
+	@echo "😜 === 测试jni程序开始运行 ==="
 	$(JAVAC) $(JAVACFLAGS) ./$(JAVA_DIR_PATH)/$(JVM_LOCALS).java
 	$(JAVA) $(JAVAFLAGS) $(JAVA_DIR_PATH)/$(JVM_LOCALS)
-	@echo "=== 测试jni程序运行完成 ==="
+	@echo "😜 === 测试jni程序运行完成 ==="
 
 genjni: $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
 
@@ -57,4 +57,12 @@ genjni: $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
 clean:
 	rm -f *.so *.class  *.log
 	find . -name "*.class" -type f -delete
-	@echo "=== 清理完成 ==="
+	@echo "😜 === 清理完成 ==="
+
+check_ldd: $(TARGET_FILE_AGENT_SO)
+	# 😜 ldd版本 
+	ldd --version
+	# 😜 gcc版本
+	$(CXX) --version
+	# 😜 查看动态库依赖
+	ldd $(TARGET_FILE_AGENT_SO)

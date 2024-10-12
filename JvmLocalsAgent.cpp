@@ -74,6 +74,17 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
         // 获取本地变量表
         jint entry_count = 0;
         jvmtiLocalVariableEntry *table = NULL;
+
+        //  获取调用当前帧的行号
+        jlocation location;
+        err = jvmti_env->GetFrameLocation(thread, i, &frames[i].method, &location);
+        if (err != JVMTI_ERROR_NONE)
+        {
+            cerr << "Error getting frame location: " << err << endl;
+            continue; // or handle appropriately
+        }
+        cout << "Frame " << i << " location: " << location << endl;
+
         err = global_jvmti->GetLocalVariableTable(frames[i].method, &entry_count, &table);
         if (err != JVMTI_ERROR_NONE)
         {
@@ -84,6 +95,7 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
         {
             continue;
         }
+
         {
             // 处理逻辑上下文变量信息
             // 使用 String.valueOf 获取对象的字符串表示
@@ -92,20 +104,25 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
 
             for (int j = 0; j < entry_count; j++)
             {
+                // 检查变量是否在当前位置可见
+                if (location < table[j].start_location || location >= table[j].start_location + table[j].length)
+                {
+                    continue;
+                }
                 // 获取变量名称，签名和槽位
                 char *var_name = table[j].name;
                 char *var_signature = table[j].signature;
                 jint var_slot = table[j].slot;
                 jstring jstringKey = jni_env->NewStringUTF(var_name);
 
-                // byte	jbyte	B               *
-                // char	jchar	C               *
-                // double	jdouble	D           *
-                // float	jfloat	F           *
-                // int	jint	I               *
-                // short	jshort	S           *
-                // long	jlong	J               *
-                // boolean	jboolean	Z       *
+                // byte	        jbyte	    B  *
+                // char	        jchar	    C  *
+                // double	    jdouble	    D  *
+                // float	    jfloat	    F  *
+                // int	        jint	    I  *
+                // short	    jshort	    S  *
+                // long	        jlong	    J  *
+                // boolean	    jboolean	Z  *
 
                 // 根据变量类型获取值
                 if (var_signature[0] == 'B' || var_signature[0] == 'C' || var_signature[0] == 'I' || var_signature[0] == 'S' || var_signature[0] == 'Z')
@@ -174,7 +191,7 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
                     }
                     else
                     {
-                        // cout << "  4 Local variable " << var_name << " = " << "un_resolve" << ", err = " << err << endl;
+                        cout << "  4 Local variable " << var_name << " = " << "un_resolve" << ", err = " << err << endl;
                     }
                 }
                 jni_env->DeleteLocalRef(jstringKey);
