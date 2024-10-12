@@ -67,10 +67,10 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
     std::map<std::string, std::string> kvMap;
     for (int i = 0; i < frame_count; i++)
     {
-        if (i != 1)
-        {
-            continue;
-        }
+        // if (i != 1)
+        // {
+        //     continue;
+        // }
         // 获取本地变量表
         jint entry_count = 0;
         jvmtiLocalVariableEntry *table = NULL;
@@ -97,6 +97,8 @@ JNIEXPORT jobject JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
         }
 
         {
+            // 增加frame_count到返回变量中, kvmap改成数组类型
+            // kvMap["##_fc_" + i] = std::to_string(frame_count);
             // 处理逻辑上下文变量信息
             // 使用 String.valueOf 获取对象的字符串表示
             jclass stringClass = jni_env->FindClass("java/lang/String");

@@ -18,7 +18,10 @@ public class JvmLocals {
     public native static Object getLocals(Map varHolder);
 
     public static void main(String[] args) {
+        int main_a = 1;
+        int main_b = 2;
         execute();
+        int main_c = 3;
     }
 
     public static void execute() {
@@ -46,7 +49,7 @@ public class JvmLocals {
         var varArr = result.split(",");
         System.out.println(">>>>>>>>>>> jvmlocals start <<<<<<<<<<<<");
         for (String item : varArr) {
-            System.out.println(item);
+            System.out.println("\t " + item);
         }
         System.out.println(">>>>>>>>>>> jvmlocals done <<<<<<<<<<<<");
     }
