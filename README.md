@@ -9,6 +9,7 @@
 
 ## 如何运行本项目
 
+### linux
 ```shell
 # 执行测试代码
 make test
@@ -18,6 +19,15 @@ make clean
 
 # 编译动态库
 make
+```
+
+### windows
+```shell
+mingw32-make test
+
+mingw32-make clean
+
+mingw32-make
 ```
 
 ## TODO 
