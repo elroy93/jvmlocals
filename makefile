@@ -36,6 +36,7 @@ $(TARGET_FILE_AGENT_SO): $(SRC_AGENT_CPP) $(TARGET_FILE_JVM_LOCALS_JNI_HEADER)
 	$(CXX) $(CXXFLAGS) $(SRC_AGENT_CPP) -o $(TARGET_FILE_AGENT_SO) $(LDFLAGS)
 	@echo "=== Agent C++ 编译完成 ==="
 
+# 生成头文件
 $(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
 	${JAVAC} -h . $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JAVA)
 	rm -rf $(JVM_LOCALS).class
@@ -43,6 +44,7 @@ $(TARGET_FILE_JVM_LOCALS_JNI_HEADER): $(SRC_TARGET_FILE_JVM_LOCALS_JNI_HEADER_JA
 
 ##################################################################################
 
+# 测试
 test: $(TARGET_FILE_AGENT_SO) 
 	@echo "=== 测试jni程序开始运行 ==="
 	$(JAVAC) $(JAVACFLAGS) ./$(JAVA_DIR_PATH)/$(JVM_LOCALS).java
