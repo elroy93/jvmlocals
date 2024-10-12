@@ -62,7 +62,7 @@ JNIEXPORT jstring JNICALL Java_github_elroy93_jvmlocals_JvmLocals_getLocals(JNIE
         cerr << "Unable to get stack trace! err=" << err << ", frame_count=" << frame_count << endl;
         return nullptr;
     }
-    cout << "Frame_Count: " << frame_count << endl;
+//    cout << "Frame_Count: " << frame_count << endl;
 
     std::map<std::string, std::string> kvMap;
     for (int i = 0; i < frame_count; i++)

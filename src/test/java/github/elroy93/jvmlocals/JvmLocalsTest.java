@@ -58,30 +58,30 @@ class JvmLocalsTest {
 
     @Test
     public void testDouble() {
-        double aa = 1.0;
+        double aa = 2.0;
         var result = JvmLocals.getLocals("testDouble");
-        Assertions.assertEquals(result, "aa: 1.000000");
+        Assertions.assertEquals(result, "aa: 2.000000");
     }
 
     @Test
     public void testFloat() {
-        float aa = 1.0f;
+        float aa = 3.0f;
         var result = JvmLocals.getLocals("testFloat");
-        Assertions.assertEquals(result, "aa: 1.000000");
+        Assertions.assertEquals(result, "aa: 3.000000");
     }
 
     @Test
     public void testShort() {
-        short aa = 1;
+        short aa = 4;
         var result = JvmLocals.getLocals("testShort");
-        Assertions.assertEquals(result, "aa: 1");
+        Assertions.assertEquals(result, "aa: 4");
     }
 
     @Test
     public void testLong() {
-        long aa = 1L;
+        long aa = 5L;
         var result = JvmLocals.getLocals("testLong");
-        Assertions.assertEquals(result, "aa: 1");
+        Assertions.assertEquals(result, "aa: 5");
     }
 
     @Test
@@ -93,9 +93,9 @@ class JvmLocalsTest {
 
     @Test
     public void testInt() {
-        int aa = 1;
+        int aa = 7;
         var result = JvmLocals.getLocals("testInt");
-        Assertions.assertEquals(result, "aa: 1");
+        Assertions.assertEquals(result, "aa: 7");
     }
 
 }
