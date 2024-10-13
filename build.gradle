@@ -8,6 +8,7 @@ version = '1.0-SNAPSHOT'
 // some global variables
 def osName = System.getProperty("os.name").toLowerCase()
 def isLinux = osName.contains("linux")
+def isMacOs = osName.contains("mac os")
 def rootProjectPath = rootProject.getProjectDir().getAbsolutePath()
 //
 
@@ -30,14 +31,18 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
 }
 
-
-
+task makefileTask(type: Exec) {
+    commandLine 'make', 'all'
+}
 
 test {
-    println("---------- test start ----------")
-    def args = new ArrayList<String>();
+    println("---------- test start , os = ${osName} ----------")
+    dependsOn makefileTask
+    def args = []
     if (isLinux) {
         args.add("-agentpath:${rootProjectPath}/libJvmLocalsAgent.so");
+    } else if (isMacOs) {
+        args.add("-agentpath:${rootProjectPath}/libJvmLocalsAgent.dylib");
     } else {
         args.add("-agentpath:${rootProjectPath}/JvmLocalsAgent.dll");
     }
