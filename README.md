@@ -4,12 +4,14 @@
 
 想法来源于 python 的 locals()函数, 返回当前栈帧的局部变量信息
 
-1. libJvmLocalsExceptionAgent.so : 当出现异常时, 获取当前线程的局部变量信息
-2.
+1. 获取线程的变量信息. 测试环境排查问题非常有用
+2. TODO 异常时候自动获取线程的变量信息
 
 ## 如何运行本项目
-
-### linux
+> 请确保已经安装make和gradle  
+> windows确保已经安装mingw
+> # 以上工具确保已经配置好path
+### linux || mac
 ```shell
 # 执行测试代码
 make test
