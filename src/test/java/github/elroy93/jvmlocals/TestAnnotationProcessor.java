@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
-import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
@@ -12,6 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+
+import org.junit.jupiter.api.*;
 
 import static com.google.testing.compile.Compiler.javac;
 
@@ -27,7 +29,9 @@ public class TestAnnotationProcessor {
     @Test
     public void testAnnotation() throws IOException {
         AnnotationFileProcessorDemo processor = new AnnotationFileProcessorDemo();
-        Compiler compiler = javac().withProcessors(processor).withAnnotationProcessorPath(ImmutableList.of());
+        Compiler compiler = javac()
+                .withProcessors(processor)
+                .withAnnotationProcessorPath(ImmutableList.of());
         Compilation compilation = compiler.compile(Caller_RESOURCE, Callee_RESOURCE);
         for (JavaFileObject generatedFile : compilation.generatedFiles()) {
             saveInMemoryFile(generatedFile);

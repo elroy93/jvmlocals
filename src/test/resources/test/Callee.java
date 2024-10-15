@@ -18,10 +18,11 @@ package test;
 public class Callee {
 
     public void execute() {
-        System.out.println("Callee is executing");
+        System.out.println("Callee.execute()");
     }
 
     public static void beforeExecute() {
-        System.out.println("Callee is about to execute");
+        System.out.println("Callee.before()");
     }
+
 }

@@ -15,13 +15,34 @@
  */
 package test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Caller {
 
-    Callee callee = new Callee();
-
     public void call() {
+        Callee callee = new Callee();
         int a = 1;
-        String b = "b";
+        if (a == 1) {
+            int b = 2;
+        }
+
+//        Map map = new HashMap();
+//        map.put("a", a);
+//        callee.beforeExecute();
         callee.execute();
     }
+
+//    public void call2() {
+//        Callee callee = new Callee();
+//        int a = 1;
+//        if (a == 1) {
+//            int b = 2;
+//        };
+//        java.util.Map map = new java.util.HashMap();
+//        map.put("callee", callee);;
+//        map.put("a", a);;
+//        callee.beforeExecute();;
+//        callee.execute();;
+//    }
 }

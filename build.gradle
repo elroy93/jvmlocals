@@ -18,26 +18,104 @@ repositories {
     }
     mavenCentral()
 }
+def compilerArgsForRunningCF = [
+        // These are required in Java 16+ because the --illegal-access option is set to deny
+        // by default.  None of these packages are accessed via reflection, so the module
+        // only needs to be exported, but not opened.
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+        '--add-exports',
+        'jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+        // Required because the Checker Framework reflectively accesses private members in com.sun.tools.javac.comp.
+        '--add-opens',
+        'jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+]
 
 // 设置编译参数 -g:lines,vars,source -encoding UTF-8
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
     options.compilerArgs.add('-g:lines,vars,source')
+
+    options.fork = true
+    options.forkOptions.jvmArgs += [
+            '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+            '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+    ]
+    options.forkOptions.jvmArgs += compilerArgsForRunningCF
+    options.compilerArgs += [
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+            '--add-exports',
+            'jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    ]
 }
 
 dependencies {
+
+    // https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy
+    implementation 'net.bytebuddy:byte-buddy:1.15.4'
+    implementation 'net.bytebuddy:byte-buddy-agent:1.15.4'
+
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
+    implementation 'org.ow2.asm:asm:9.7'
+    implementation 'org.ow2.asm:asm-tree:9.7'
+    implementation 'org.ow2.asm:asm-util:9.7'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    testImplementation 'com.google.testing.compile:compile-testing:0.21.0'
+    implementation 'com.google.truth:truth:1.4.4'
+
     testImplementation platform('org.junit:junit-bom:5.11.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
 }
 
-task makefileTask(type: Exec) {
-    commandLine 'make', 'all'
-}
+//task makefileTask(type: Exec) {
+////    if (isLinux || isMacOs) {
+////        workingDir rootProjectPath
+////        commandLine 'make', 'clean' 'test'
+////    }
+//}
 
 test {
     println("---------- test start , os = ${osName} ----------")
-    dependsOn makefileTask
+    // dependsOn makefileTask
     def args = []
     if (isLinux) {
         args.add("-agentpath:${rootProjectPath}/libJvmLocalsAgent.so");
@@ -51,7 +129,37 @@ test {
     args.add("-Xint")
     args.add("-XX:-UseCompressedOops")
     args.add("-XX:-TieredCompilation")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED")
+    args.add("--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED")
+    args.add("--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED")
+    args.add("--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED")
     jvmArgs(args);
-
     useJUnitPlatform()
 }
+
+
+//test {
+//    jvmArgs(
+//            // used
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+//            // the others
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+//            "--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+//    )
+//    jvmArgs += compilerArgsForRunningCF
+//
+//
+//}

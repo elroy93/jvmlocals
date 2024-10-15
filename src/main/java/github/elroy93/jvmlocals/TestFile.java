@@ -1,4 +1,4 @@
-package github.elroy93;
+package github.elroy93.jvmlocals;
 
 import java.util.Map;
 

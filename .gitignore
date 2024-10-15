@@ -6,3 +6,4 @@ JvmLocalsAgent.dll
 libJvmLocalsAgent.so
 **/*.class
 /libJvmLocalsAgent.dylib
+/jvmlocalsinterceptor/build/
