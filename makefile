@@ -2,9 +2,11 @@
 # JAVA_HOME=/root/.sdkman/candidates/java/11.0.24-amzn
 
 # Determine if the OS is Windows or Linux
-PLATFORM=Linux
+
+UNAME_S := $(shell uname -s)
+CC_ARCH =
+RM=rm -f
 ifeq ($(OS),Windows_NT)
-	# Windows settings
 	CXX=g++
 	TARGET_LIB=$(fileName_jvmLocalsAgentSo).dll
 	JAVA_INCLUDE_PLATFORM=win32
@@ -12,13 +14,20 @@ ifeq ($(OS),Windows_NT)
 	RM=del /F /Q
 	RMR=del /S /Q
 	PLATFORM=Windows
+else ifeq ($(UNAME_S),Darwin)
+	CXX=g++
+	TARGET_LIB=lib$(fileName_jvmLocalsAgentSo).dylib
+	JAVA_INCLUDE_PLATFORM=darwin
+	LDFLAGS=
+	CCFLAGS += -D OSX
+	CC_ARCH = -arch x86_64
+	PLATFORM=MacOs
 else
-	# Linux settings
 	CXX=g++
 	TARGET_LIB=lib$(fileName_jvmLocalsAgentSo).so
 	JAVA_INCLUDE_PLATFORM=linux
 	LDFLAGS=-lrt -lpthread
-	RM=rm -f
+	PLATFORM=Linux
 endif
 
 # C++ compiler and compile options
@@ -49,11 +58,11 @@ JAVAFLAGS=-agentpath:./$(TARGET_LIB) -Djava.library.path=./ -XX:+ShowMessageBoxO
 
 # Default target, compile the C++ library
 all: $(TARGET_LIB)
-	@echo "😜 === Compilation Complete on ${PLATFORM}==="
+	@echo "😜 === Compilation Complete on platform=${PLATFORM} uname=${UNAME_S}==="
 
 # Compile the C++ shared library
 $(TARGET_LIB): $(fileName_agentCpp) $(fileName_targetJavaHeader)
-	$(CXX) $(CXXFLAGS) $(fileName_agentCpp) -o $(TARGET_LIB) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(fileName_agentCpp) -o $(TARGET_LIB) $(LDFLAGS) ${CC_ARCH}
 	@echo "😜 === Agent C++ Compilation Complete ==="
 
 # Generate JNI header file
@@ -74,7 +83,7 @@ genjni: $(fileName_targetJavaHeader)
 
 # Clean generated files
 clean:
-	-$(RM) *.so *.dll *.log
+	-$(RM) *.so *.dll *.log *.dylib
 	-$(RM) $(path_javaHeaderClass)
 	-gradle clean --warning-mode all
 	@echo "😜 === Clean Complete ==="
