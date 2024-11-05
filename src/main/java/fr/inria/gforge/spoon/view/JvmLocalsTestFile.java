@@ -6,7 +6,7 @@ import java.util.function.Consumer;
  * @author elroysu
  * @date 2024/10/31 星期四 1:13
  */
-public class A {
+public class JvmLocalsTestFile {
 
     public void add(int a , int b) {
         int c = a + b;

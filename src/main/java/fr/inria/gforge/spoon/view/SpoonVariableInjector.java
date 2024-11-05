@@ -18,11 +18,11 @@ public class SpoonVariableInjector {
     public static void main(String[] args1) {
         // Initialize Spoon
         Launcher launcher = new Launcher();
-        launcher.addInputResource("src/main/java/fr/inria/gforge/spoon/view/A.java");
+        launcher.addInputResource("src/main/java/fr/inria/gforge/spoon/view/JvmLocalsTestFile.java");
         launcher.buildModel();
 
         // Get the class
-        CtClass<?> ctClass = launcher.getFactory().Class().get("fr.inria.gforge.spoon.view.A");
+        CtClass<?> ctClass = launcher.getFactory().Class().get("fr.inria.gforge.spoon.view.JvmLocalsTestFile");
 
         // Get the method
         CtMethod<?> method = ctClass.getMethodsByName("add").get(0);

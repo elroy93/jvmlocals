@@ -7,3 +7,4 @@ libJvmLocalsAgent.so
 **/*.class
 /libJvmLocalsAgent.dylib
 /jvmlocalsinterceptor/build/
+/spooned/

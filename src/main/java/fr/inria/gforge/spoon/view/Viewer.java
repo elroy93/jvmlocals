@@ -9,7 +9,7 @@ public class Viewer {
 
 	public static void main(String[] args1) throws IOException {
 		final String[] args = {
-				"-i", "src/main/java/fr/inria/gforge/spoon/view/A.java",
+				"-i", "src/main/java/fr/inria/gforge/spoon/view/JvmLocalsTestFile.java",
 				"--gui"
 		};
 		// 打印运行的路径
