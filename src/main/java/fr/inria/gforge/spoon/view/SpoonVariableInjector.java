@@ -64,11 +64,9 @@ class VariableCollectorVisitor extends CtScanner {
 
     @Override
     public <T> void visitCtBlock(CtBlock<T> block) {
-        // 进入block之前保存variablesInScope
-        List<CtVariableReference<?>> variablesBeforeBlock = new ArrayList<>(variablesInScope);
-        super.visitCtBlock(block);
-        // Restore variablesInScope after exiting the block
-        variablesInScope = variablesBeforeBlock;
+        backUpAndRecover(() -> {
+            super.visitCtBlock(block);
+        });
     }
 
     @Override
@@ -94,9 +92,9 @@ class VariableCollectorVisitor extends CtScanner {
     public void visitCtFor(CtFor forLoop) {
         var backIsForLoop = this.isForLoop;
         this.isForLoop = true;
-        List<CtVariableReference<?>> backVars = new ArrayList<>(variablesInScope);
-        super.visitCtFor(forLoop);
-        variablesInScope = backVars;
+        backUpAndRecover(() -> {
+            super.visitCtFor(forLoop);
+        });
         this.isForLoop = backIsForLoop;
     }
 

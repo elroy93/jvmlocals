@@ -174,6 +174,7 @@ public class JvmLocalsTestFile {
                 printLocals();
                 break;
         }
+        printLocals();
     }
 
     public static void printLocals(Object... objs) {

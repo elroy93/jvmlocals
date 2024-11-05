@@ -166,6 +166,7 @@ public class JvmLocalsTestFileOutput {
                 fr.inria.gforge.spoon.view.JvmLocalsTestFile.printLocals(value, i, defaultVar);
                 break;
         }
+        fr.inria.gforge.spoon.view.JvmLocalsTestFile.printLocals(value, i);
     }
 
     public static void printLocals(java.lang.Object... objs) {
