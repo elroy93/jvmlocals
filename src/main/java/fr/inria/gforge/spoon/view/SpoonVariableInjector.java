@@ -1,10 +1,7 @@
 package fr.inria.gforge.spoon.view;
 
 import spoon.Launcher;
-import spoon.reflect.code.CtBlock;
-import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtInvocation;
-import spoon.reflect.code.CtLocalVariable;
+import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
@@ -30,8 +27,13 @@ public class SpoonVariableInjector {
         // Visit the method to inject variables
         method.accept(new VariableCollectorVisitor());
 
+        // 更改文件名称为JvmLocalsTestFileOutput.java
+        ctClass.setSimpleName("JvmLocalsTestFileOutput");
         // Output the modified code
         System.out.println(ctClass);
+
+        // 写入文件, JvmLocalsTestFileOutput.java
+        launcher.createOutputWriter().createJavaFile(ctClass);
     }
 }
 
@@ -59,8 +61,8 @@ class VariableCollectorVisitor extends CtScanner {
     @Override
     public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
         // Add local variable to variablesInScope
-        variablesInScope.add(localVariable.getReference());
         super.visitCtLocalVariable(localVariable);
+        variablesInScope.add(localVariable.getReference());
     }
 
     @Override
@@ -75,5 +77,14 @@ class VariableCollectorVisitor extends CtScanner {
             invocation.setArguments(args);
         }
         super.visitCtInvocation(invocation);
+    }
+
+    @Override
+    public <T> void visitCtLambda(CtLambda<T> lambda) {
+        // 进入block之前保存variablesInScope
+        List<CtVariableReference<?>> variablesBeforeBlock = new ArrayList<>(variablesInScope);
+        super.visitCtLambda(lambda);
+        // Restore variablesInScope after exiting the block
+        variablesInScope = variablesBeforeBlock;
     }
 }
