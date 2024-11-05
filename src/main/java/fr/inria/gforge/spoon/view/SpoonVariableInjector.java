@@ -1,18 +1,27 @@
 package fr.inria.gforge.spoon.view;
 
+import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
 import spoon.Launcher;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.declaration.CtParameter;
 import spoon.reflect.reference.CtVariableReference;
 import spoon.reflect.visitor.CtScanner;
+import spoon.support.JavaOutputProcessor;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SpoonVariableInjector {
     public static void main(String[] args1) {
+        var fileName = "src/main/java/fr/inria/gforge/spoon/view/JvmLocalsTestFileOutput.java";
+        // 如果文件存在,先删除
+        new File(fileName).delete();
+
         // Initialize Spoon
         Launcher launcher = new Launcher();
         launcher.addInputResource("src/main/java/fr/inria/gforge/spoon/view/JvmLocalsTestFile.java");
@@ -22,23 +31,27 @@ public class SpoonVariableInjector {
         CtClass<?> ctClass = launcher.getFactory().Class().get("fr.inria.gforge.spoon.view.JvmLocalsTestFile");
 
         // Get the method
-        CtMethod<?> method = ctClass.getMethodsByName("add").get(0);
 
-        // Visit the method to inject variables
-        method.accept(new VariableCollectorVisitor());
+        for (CtMethod<?> method : ctClass.getMethods()) {
+            method.accept(new VariableCollectorVisitor());
+        }
 
-        // 更改文件名称为JvmLocalsTestFileOutput.java
         ctClass.setSimpleName("JvmLocalsTestFileOutput");
-        // Output the modified code
-        System.out.println(ctClass);
-
-        // 写入文件, JvmLocalsTestFileOutput.java
-        launcher.createOutputWriter().createJavaFile(ctClass);
+        JavaOutputProcessor outputWriter = launcher.createOutputWriter();
+        outputWriter.createJavaFile(ctClass);
+        List<File> createdFiles = outputWriter.getCreatedFiles();
+        System.out.println(createdFiles);
+        // 复制文件到 src/main/java/fr/inria/gforge/spoon/view/ 这个目录下
+        for (File file : createdFiles) {
+            new File(fileName).delete();
+            file.renameTo(new File(fileName));
+        }
     }
 }
 
 class VariableCollectorVisitor extends CtScanner {
     private List<CtVariableReference<?>> variablesInScope = new ArrayList<>();
+    private boolean isForLoop = false;
 
     @Override
     public <T> void visitCtMethod(CtMethod<T> m) {
@@ -60,9 +73,31 @@ class VariableCollectorVisitor extends CtScanner {
 
     @Override
     public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
-        // Add local variable to variablesInScope
+        // 循环遍历, 先访问变量,后访问block,并且block中能访问这个变量.
         super.visitCtLocalVariable(localVariable);
         variablesInScope.add(localVariable.getReference());
+    }
+
+
+
+    @Override
+    public <S> void visitCtCase(CtCase<S> caseStatement) {
+        backUpAndRecover(() -> super.visitCtCase(caseStatement));
+    }
+
+    @Override
+    public <S> void visitCtSwitch(CtSwitch<S> switchStatement) {
+        backUpAndRecover(() -> super.visitCtSwitch(switchStatement));
+    }
+
+    @Override
+    public void visitCtFor(CtFor forLoop) {
+        var backIsForLoop = this.isForLoop;
+        this.isForLoop = true;
+        List<CtVariableReference<?>> backVars = new ArrayList<>(variablesInScope);
+        super.visitCtFor(forLoop);
+        variablesInScope = backVars;
+        this.isForLoop = backIsForLoop;
     }
 
     @Override
@@ -79,12 +114,22 @@ class VariableCollectorVisitor extends CtScanner {
         super.visitCtInvocation(invocation);
     }
 
+
     @Override
     public <T> void visitCtLambda(CtLambda<T> lambda) {
-        // 进入block之前保存variablesInScope
+        backUpAndRecover(() -> {
+            for (CtParameter<?> param : lambda.getParameters()) {
+                variablesInScope.add(param.getReference());
+            }
+            super.visitCtLambda(lambda);
+        });
+    }
+
+    public void backUpAndRecover(Runnable run) {
+        // 备份variablesInScope
         List<CtVariableReference<?>> variablesBeforeBlock = new ArrayList<>(variablesInScope);
-        super.visitCtLambda(lambda);
-        // Restore variablesInScope after exiting the block
+        run.run();
+        // 恢复variablesInScope
         variablesInScope = variablesBeforeBlock;
     }
 }
